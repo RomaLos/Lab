@@ -1,0 +1,78 @@
+name: Build RPM and DEB packages
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  release:
+    types: [ published ]
+
+jobs:
+  build-rpm:
+    runs-on: ubuntu-latest
+    container: fedora:latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Install dependencies
+      run: |
+        dnf update -y
+        dnf install -y rpm-build rpmdevtools make
+    
+    - name: Build RPM
+      run: |
+        make rpm
+    
+    - name: Upload RPM artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: rpm-packages
+        path: build/rpm/RPMS/noarch/*.rpm
+
+  build-deb:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential devscripts debhelper
+    
+    - name: Build DEB
+      run: |
+        make deb
+    
+    - name: Upload DEB artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: deb-packages
+        path: build/deb/*.deb
+
+  test-packages:
+    needs: [build-rpm, build-deb]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Download DEB package
+      uses: actions/download-artifact@v3
+      with:
+        name: deb-packages
+        path: ./packages
+    
+    - name: Test DEB installation
+      run: |
+        sudo dpkg -i packages/*.deb || sudo apt-get install -f -y
+        count-files
+        
+    - name: Test script functionality
+      run: |
+        bash count_files.sh
