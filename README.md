@@ -9,10 +9,10 @@
 8. ✅ Створити Jenkins Pipeline
 
 ## Використання
-### Запуск скрипта
+# Запуск скрипта
 bash count_files.sh
 
-### Збірка пакетів
+№# Збірка пакетів
 # Збірка RPM
 make rpm
 
@@ -22,7 +22,7 @@ make deb
 # Збірка обох пакетів
 make all
 
-### Запуск Jenkins в Docker
+## Запуск Jenkins в Docker
 docker build -t jenkins-spa .
 docker run -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins-spa
 
